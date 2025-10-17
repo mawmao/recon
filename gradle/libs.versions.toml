@@ -1,10 +1,12 @@
 [versions]
 agp = "8.13.0"
+barcodeScanning = "17.3.0"
+cameraCamera2 = "1.5.1"
 kotlin = "2.2.20"
 coreKtx = "1.17.0"
 lifecycleRuntimeKtx = "2.9.4"
 activityCompose = "1.11.0"
-composeBom = "2025.09.01"
+composeBom = "2025.10.00"
 ksp = "2.2.20-2.0.3"
 hilt = "2.57.2"
 androidXHilt = "1.3.0"
@@ -12,6 +14,10 @@ composeNavigation = "2.9.5"
 serialization-json = "1.9.0"
 
 [libraries]
+androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "cameraCamera2" }
+androidx-camera-mlkit-vision = { module = "androidx.camera:camera-mlkit-vision", version.ref = "cameraCamera2" }
+androidx-camera-view = { module = "androidx.camera:camera-view", version.ref = "cameraCamera2" }
+androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "cameraCamera2" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
@@ -21,6 +27,7 @@ androidx-compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graph
 androidx-compose-navigation = { group = "androidx.navigation", name = "navigation-compose", version.ref = "composeNavigation" }
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-compose-material-icons-ext = { group = "androidx.compose.material", name = "material-icons-extended" }
+barcode-scanning = { module = "com.google.mlkit:barcode-scanning", version.ref = "barcodeScanning" }
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-android-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
 hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "androidXHilt" }
