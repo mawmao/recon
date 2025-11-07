@@ -16,15 +16,22 @@ sealed class FormSection : ReconRoute {
     data object Scan : FormSection()
 
     @Serializable
-    data class Confirm(val barcode: String) : FormSection()
+    data class Confirm(val mfid: String) : FormSection()
 
     @Serializable
-    data class Question(val barcode: String, val type: String) : FormSection()
+    data class Question(val mfid: String, val formTypeName: String) : FormSection()
+
+    @Serializable
+    data class Review(
+        val mfid: String,
+        val formTypeName: String,
+        val answersJson: String
+    ) : FormSection()
 }
 
 fun NavGraphBuilder.formNavigation(appState: ReconAppState) {
     transitionComposable<RootSection.Form> {
         val form: RootSection.Form = it.toRoute()
-        FormSection(appState = appState, formType = form.type)
+        FormSection(appState = appState, formType = form.formTypeId)
     }
 }

@@ -13,7 +13,8 @@ interface VMComponent
 class VMState<State>(initialState: State): VMComponent {
     private val _state = MutableStateFlow(initialState)
     val flow: StateFlow<State> = _state.asStateFlow()
-    val value = _state.value
+    val value: State
+        get() = _state.value
 
     fun update(updater: (State) -> State) = _state.update(updater)
 }

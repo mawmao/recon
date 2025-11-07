@@ -1,4 +1,4 @@
-package com.maacro.recon.feature.login
+package com.maacro.recon.feature.auth.ui.login
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,7 +22,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.maacro.recon.core.common.ReconScreenEvents
+import com.maacro.recon.core.common.ReconVMEvents
 import com.maacro.recon.ui.common.ConnectivityIndicator
 import com.maacro.recon.ui.common.ReconLogo
 import com.maacro.recon.ui.common.ReconRegion
@@ -38,18 +38,18 @@ private const val DEBUG = false;
 
 @Composable
 fun LoginScreen(
-    viewModel: LoginViewModel = hiltViewModel(),
+    vm: LoginViewModel = hiltViewModel(),
     onAuthSuccess: () -> Unit,
     onForgotPassword: () -> Unit,
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    val errors by viewModel.errors.collectAsStateWithLifecycle()
-    val events = viewModel.events
+    val state by vm.state.collectAsStateWithLifecycle()
+    val errors by vm.errors.collectAsStateWithLifecycle()
+    val events = vm.events
 
-    ReconScreenEvents(
+    ReconVMEvents(
         events = events,
         errors = errors,
-        onErrorDismiss = viewModel::clearError,
+        onErrorDismiss = { vm.onAction(LoginAction.ClearError) }
     ) {
         when (it) {
             is LoginEvent.LoginSuccess -> onAuthSuccess()
@@ -61,9 +61,9 @@ fun LoginScreen(
             .fillMaxSize()
             .safePadding(),
         state = state,
-        onRememberClick = { viewModel.onAction(LoginAction.RememberClick(it)) },
+        onRememberClick = { vm.onAction(LoginAction.RememberClick(it)) },
         onForgotPasswordClick = onForgotPassword,
-        onLoginClick = { viewModel.onAction(LoginAction.LoginClick) }
+        onLoginClick = { vm.onAction(LoginAction.LoginClick) }
     )
 }
 

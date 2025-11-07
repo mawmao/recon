@@ -5,6 +5,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.maacro.recon.feature.form.model.FormType
 import com.maacro.recon.navigation.RootSection
 
 @Composable
@@ -31,8 +32,8 @@ class ReconAppState(val navController: NavHostController) {
 
     fun navigateToAuth() = navigateRoot(RootSection.Auth)
     fun navigateToMain() = navigateRoot(RootSection.Main)
-    fun navigateToForm(type: String) {
-        navController.navigate(RootSection.Form(type))
+    fun navigateToForm(formType: FormType) {
+        navController.navigate(RootSection.Form(formTypeId = formType.name))
     }
 
     private fun navigateRoot(root: RootSection) {

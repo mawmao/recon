@@ -15,14 +15,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.maacro.recon.feature.form.ui.components.BarcodeScannerView
 import com.maacro.recon.ui.components.ReconButton
 import com.maacro.recon.ui.components.ReconTopAppBar
 import com.maacro.recon.ui.util.safePadding
 
 /**
- * TODO -
- * Could possibly remove view model because scanned barcode is handled in the [ConfirmScreen]
+ * TODO: possibly remove view model because scanned barcode is handled in the [ConfirmScreen]
  */
 
 @Composable
@@ -39,9 +37,10 @@ fun ScanScreen(
     ) {
 
         ReconButton(
-            text = "Simulate Scan",
-            onClick = { onBarcodeScan("hehe")}
+            text = "Scan (debug)",
+            onClick = { onBarcodeScan("600401001")}
         )
+
 //        BarcodeScannerView(
 //            modifier = Modifier.fillMaxSize(),
 //            onBarcodeDetected = { barcode ->

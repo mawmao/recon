@@ -21,4 +21,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "Recon"
 include(":app")
- 
+include(":forms:model")
+include(":forms:generator")

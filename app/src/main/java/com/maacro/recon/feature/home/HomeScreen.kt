@@ -30,7 +30,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.maacro.recon.core.common.ReconScreenEvents
+import com.maacro.recon.core.common.ReconVMEvents
 import com.maacro.recon.feature.form.model.FormType
 import com.maacro.recon.ui.common.ReconLogo
 import com.maacro.recon.ui.components.ReconDialog
@@ -46,19 +46,23 @@ private const val DEBUG = false;
 
 @Composable
 fun HomeScreen(
-    viewModel: HomeViewModel = hiltViewModel(),
+    vm: HomeViewModel = hiltViewModel(),
     onSignOut: () -> Unit,
-    onFormClick: (String) -> Unit,
+    onFormClick: (FormType) -> Unit,
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    val errors by viewModel.errors.collectAsStateWithLifecycle()
-    val events = viewModel.events
+    val state by vm.state.collectAsStateWithLifecycle()
+    val errors by vm.errors.collectAsStateWithLifecycle()
+    val events = vm.events
 
-    ReconScreenEvents(
+    ReconVMEvents(
         events = events,
         errors = errors,
-        onErrorDismiss = viewModel::clearError,
-    ) { }
+        onErrorDismiss = { vm.onAction(HomeAction.ClearError) },
+    ) { event ->
+        when (event) {
+            is HomeEvent.SignOutSuccess -> onSignOut()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -68,21 +72,25 @@ fun HomeScreen(
     ) {
         SettingsDialog(
             isVisible = state.isSettingsShown,
-            onDismissRequest = viewModel::hideSettings,
-            onSignOut = onSignOut
+            onDismissRequest = vm::hideSettings,
+            onSignOut = { vm.onAction(HomeAction.SignOutClick) }
         )
-        HomeScreenTopBar(onSettingsClick = { viewModel.onAction(HomeAction.SettingsClick) })
+        HomeScreenTopBar(onSettingsClick = { vm.onAction(HomeAction.SettingsClick) })
         TemporaryFormGrid(onFormClick = onFormClick)
     }
 }
 
 @Composable
-fun TemporaryFormGrid(onFormClick: (String) -> Unit) {
+fun TemporaryFormGrid(onFormClick: (FormType) -> Unit) {
 
     val coreItems = FormType.coreTypes
     val optionalItems = FormType.optionalTypes
 
-    Column(modifier = Modifier.fillMaxSize().padding(bottom = 16.dp)) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(bottom = 16.dp)
+    ) {
         Text("Core", modifier = Modifier.padding(bottom = 8.dp))
 
         Column(modifier = Modifier.weight(2f), verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -115,7 +123,7 @@ fun TemporaryFormGrid(onFormClick: (String) -> Unit) {
 
 @Composable
 fun TemporaryFormPlaceholder(
-    item: String,
+    formType: FormType,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
@@ -127,7 +135,7 @@ fun TemporaryFormPlaceholder(
             .fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        Text(text = item, style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.Center)
+        Text(text = formType.label, style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.Center)
     }
 }
 

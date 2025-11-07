@@ -1,6 +1,5 @@
 package com.maacro.recon.core.common
 
-import android.R.id.message
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -12,10 +11,11 @@ import kotlinx.coroutines.flow.collectLatest
 
 /**
  * TODO: Group [ReconConfirmDialog] state to a data class
+ * TODO: strip confirm event and use [ReconConfirmEvent]
  *
  */
 @Composable
-fun <E> ReconScreenEvents(
+fun <E> ReconVMEvents(
     events: Flow<E>,
 
     errors: String? = null,
@@ -56,3 +56,19 @@ fun <E> ReconScreenEvents(
     }
 }
 
+@Composable
+fun ReconConfirmEvent(
+    confirmVisible: Boolean,
+    confirmMessage: String = "Are you sure?",
+    onConfirmDismiss: (() -> Unit)? = null,
+    onConfirm: (() -> Unit)? = null
+) {
+    if (onConfirmDismiss != null && onConfirm != null) {
+        ReconConfirmDialog(
+            isVisible = confirmVisible,
+            message = confirmMessage,
+            onDismissRequest = { onConfirmDismiss() },
+            onConfirm = { onConfirm() }
+        )
+    }
+}

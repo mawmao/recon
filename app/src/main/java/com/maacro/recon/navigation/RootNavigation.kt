@@ -3,7 +3,6 @@ package com.maacro.recon.navigation
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import com.maacro.recon.core.common.ReconRoute
-import com.maacro.recon.feature.form.model.FormType
 import com.maacro.recon.navigation.auth.authNavigation
 import com.maacro.recon.navigation.form.formNavigation
 import com.maacro.recon.navigation.main.mainNavigation
@@ -19,17 +18,19 @@ sealed class RootSection : ReconRoute {
     @Serializable
     object Main : RootSection()
 
-    @Serializable
-    data class Form(val type: String) : RootSection()
+    // use `FormType.id`
+    @Serializable data class Form(val formTypeId: String) : RootSection()
 }
 
 
 @Composable
-fun ReconRootNavigation(appState: ReconAppState) {
-
+fun ReconRootNavigation(
+    appState: ReconAppState,
+    startDestination: RootSection
+) {
     NavHost(
         navController = appState.navController,
-        startDestination = RootSection.Form(FormType.CULTURAL)
+        startDestination = startDestination
     ) {
         authNavigation(appState = appState)
         mainNavigation(appState = appState)
