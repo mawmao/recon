@@ -17,6 +17,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.maacro.recon.ui.components.ReconButton
 import com.maacro.recon.ui.components.ReconTopAppBar
+import com.maacro.recon.ui.sections.FormSectionState
 import com.maacro.recon.ui.util.safePadding
 
 /**
@@ -26,8 +27,9 @@ import com.maacro.recon.ui.util.safePadding
 @Composable
 fun ScanScreen(
     vm: ScanViewModel = hiltViewModel(),
+    formSectionState: FormSectionState,
     onNavigateBack: () -> Unit,
-    onBarcodeScan: (String) -> Unit
+    onBarcodeScan: () -> Unit
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
 
@@ -38,7 +40,10 @@ fun ScanScreen(
 
         ReconButton(
             text = "Scan (debug)",
-            onClick = { onBarcodeScan("600401001")}
+            onClick = {
+                formSectionState.updateMfid("600401001")
+                onBarcodeScan()
+            }
         )
 
 //        BarcodeScannerView(
@@ -58,7 +63,7 @@ fun ScanScreen(
                 .align(Alignment.TopCenter)
         ) {
             ReconTopAppBar(
-                onNavigateBack = onNavigateBack,
+                onBackTap = onNavigateBack,
                 contentColor = Color.White,
                 actions = {}
             )

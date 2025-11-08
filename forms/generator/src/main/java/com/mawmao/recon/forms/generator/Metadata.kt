@@ -31,5 +31,6 @@ data class SectionMeta(
 data class RepeatableMeta(
     val groupId: String,
     val title: String,
-    val sectionTemplates: List<SectionMeta>
+    val templateSections: List<SectionMeta>,
+    val sections: List<SectionMeta> = templateSections
 ) : FormElementMeta

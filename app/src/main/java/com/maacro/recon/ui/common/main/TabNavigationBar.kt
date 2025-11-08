@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
@@ -11,6 +12,7 @@ import com.maacro.recon.navigation.main.tabs.NavigationTab
 import com.maacro.recon.ui.components.NavigationBarContent
 import com.maacro.recon.ui.components.ReconNavigationBar
 import com.maacro.recon.ui.components.ReconNavigationBarItem
+import kotlinx.coroutines.NonCancellable.key
 
 @Composable
 fun ReconTabNavigationBar(
@@ -21,27 +23,19 @@ fun ReconTabNavigationBar(
     ReconNavigationBar(modifier = Modifier.padding(horizontal = 64.dp)) {
         NavigationBarContent {
             tabs.fastForEach { tab ->
-                ReconNavigationBarItem(
-                    selected = currentTab == tab,
-                    onClick = {
-                        if (currentTab != tab) {
-                            onNavigateToTab(tab)
-                        }
-                    },
-                    icon = {
-                        Icon(
-                            imageVector = tab.icon,
-                            contentDescription = tab.label
-                        )
-                    },
-                    selectedIcon = {
-                        Icon(
-                            imageVector = tab.selectedIcon,
-                            contentDescription = tab.label
-                        )
-                    },
-                    label = { Text(tab.label) }
-                )
+                key(tab) {
+                    ReconNavigationBarItem(
+                        selected = currentTab == tab,
+                        onClick = {
+                            if (currentTab != tab) {
+                                onNavigateToTab(tab)
+                            }
+                        },
+                        icon = tab.icon,
+                        selectedIcon = tab.selectedIcon,
+                        label = tab.label
+                    )
+                }
             }
         }
     }

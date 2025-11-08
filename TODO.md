@@ -5,20 +5,14 @@ in progress:
     - [ ] add validation on inputs (should validate per page before continue to next or review)
     - [ ] setup supabase connection
         - auth:
-            - [x] user must login online
-            - [x] persist login (while online) `to review`
             - [x] persist login (while offline) `to review`
                 - [] store login data to be able to login previously logged in users
         - db:
             - [ ] check if there is already an entry of that form with that mfid when clicking on a form
             - create mappers for each form
-                - [x] monitoring visit
                 - [ ] field profile
                 - [ ] cultural management
-                - [-] nutrient management (`fertilizer_applications` not repeatable yet)
-                - [x] production 
-                - [x] damage assessment
-    - handle `nutrient management` repeating questions
+        - create review screen ui
 
 issues:
     - login sometimes go invalid after not logging in for a few days
@@ -32,25 +26,29 @@ todo:
 
 todo(ui):
     - create confirm screen ui (should get data from local/already input forms)
-    - clean up review screen ui
 
-clean:
-    - strip events from recon vm events (the error and confirm) and let it handle the vm events only
-    - clean up review screen
+refactor:
+    - strip events from recon vm events (the error and confirm) and let it handle the vm events only 
 
 future:
     - handle camera permissions
+    - use supabase realtime
+
+future(ui):
     - improve transition going to camera and out
     - see password button on login field
-    - show user details on settings 
+    - show user details on settings
     - improve overall loading states for UX
-    - use supabase realtime
+    - add on press color change to buttons for UX
+
 
 consider:
     - autofill on login fields
     - creating a logging class for technical logs
     - adding placeholders for each form field
-    - add conditional form fields (e.g., preset npk content vs manually input) 
+    - add conditional form fields (e.g., preset npk content vs manually input)
+        - add conditional options depending on a previous field's value
+    - exiting early in questions screen if user pressed back twice 
 
 
 

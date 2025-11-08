@@ -18,8 +18,8 @@ sealed class RootSection : ReconRoute {
     @Serializable
     object Main : RootSection()
 
-    // use `FormType.id`
-    @Serializable data class Form(val formTypeId: String) : RootSection()
+    // use `FormType.name`
+    @Serializable data class Form(val formTypeName: String) : RootSection()
 }
 
 

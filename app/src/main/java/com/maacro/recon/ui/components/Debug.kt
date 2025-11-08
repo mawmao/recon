@@ -118,10 +118,21 @@ fun DebugArea(
     }
 }
 
+fun debugList(block: MutableList<Pair<String, Any>>.() -> Unit): List<Pair<String, Any>> {
+    val list = mutableListOf<Pair<String, Any>>()
+    list.block()
+    return list
+}
+
+fun MutableList<Pair<String, Any>>.debug(label: String, value: Any) {
+    add(label to value)
+}
+
+
 @Composable
 fun DebugButton(
     text: String,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier.fillMaxWidth(),
     onClick: () -> Unit
 ) {
     ReconButton(

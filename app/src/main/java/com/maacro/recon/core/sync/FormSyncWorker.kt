@@ -16,6 +16,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 @HiltWorker
 internal class FormSyncWorker @AssistedInject constructor(
@@ -34,14 +35,11 @@ internal class FormSyncWorker @AssistedInject constructor(
             val pending = formRepository.getPendingSyncOnce()
 
             pending.forEach { entry ->
-                Log.d(
-                    "recon:form-sync-worker",
-                    "Pending entry: id=${entry.id}, mfid=${entry.mfid}, synced=${entry.synced}"
-                )
+                Timber.d("Pending entry: id=${entry.id}, mfid=${entry.mfid}, synced=${entry.synced}")
             }
 
             if (pending.isEmpty()) {
-                Log.d("recon:form-sync-worker", "No pending forms to sync")
+                Timber.d("No pending forms to sync")
                 return@withContext Result.success()
             }
 
@@ -50,23 +48,23 @@ internal class FormSyncWorker @AssistedInject constructor(
                 try {
                     supabaseService.uploadForm(entry)
                     formRepository.markAsSynced(entry.id)
-                    Log.d("recon:form-sync-worker", "Synced entry id=${entry.id}")
+                    Timber.d("Synced entry id=${entry.id}")
                 } catch (e: Exception) {
                     hasError = true
-                    Log.e("recon:form-sync-worker", "Error syncing entry id=${entry.id}", e)
+                    Timber.e(e, "Error syncing entry id=${entry.id}")
                 }
             }
 
             if (hasError) {
-                Log.d("recon:form-sync-worker", "Partial failure detected")
+                Timber.w("Partial failure detected")
                 Result.retry()
             } else {
-                Log.d("recon:form-sync-worker", "All entries synced successfully")
+                Timber.d("All entries synced successfully")
                 Result.success()
             }
 
         } catch (e: Exception) {
-            Log.e("recon:form-sync-worker", "Fatal sync error", e)
+            Timber.e(e, "Fatal sync error")
             Result.failure()
         }
     }

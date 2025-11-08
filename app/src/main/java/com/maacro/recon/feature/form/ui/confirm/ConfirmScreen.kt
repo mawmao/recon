@@ -17,24 +17,24 @@ import androidx.compose.ui.unit.dp
 import com.maacro.recon.ui.components.ReconButton
 import com.maacro.recon.ui.components.ReconIconButton
 import com.maacro.recon.ui.components.ReconTopAppBar
+import com.maacro.recon.ui.sections.FormSectionState
 import com.maacro.recon.ui.util.safePadding
 
 @Composable
 fun ConfirmScreen(
-    modifier: Modifier = Modifier,
-    scannedBarcode: String,
-    onContinue: (String) -> Unit,
+    formSectionState: FormSectionState,
+    onContinue: () -> Unit,
     onNavigateBack: () -> Unit,
     onExit: () -> Unit
 ) {
 
     Column(
-        modifier = modifier
+        modifier = Modifier
             .safePadding()
             .fillMaxSize()
     ) {
         ReconTopAppBar(
-            onNavigateBack = onNavigateBack,
+            onBackTap = onNavigateBack,
             actions = {
                 ReconIconButton(
                     onClick = onExit,
@@ -50,7 +50,7 @@ fun ConfirmScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text(text = "Barcode: $scannedBarcode")
+            Text(text = "Barcode: ${formSectionState.mfid}")
             Spacer(modifier = Modifier.height(16.dp))
             Column(
                 modifier = Modifier
@@ -61,7 +61,7 @@ fun ConfirmScreen(
                 ReconButton(
                     modifier = Modifier.fillMaxWidth(),
                     text = "Continue",
-                    onClick = { onContinue(scannedBarcode) }
+                    onClick = { onContinue() }
                 )
             }
         }

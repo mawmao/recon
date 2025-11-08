@@ -47,17 +47,21 @@ class FormGeneratorProcessor(private val codeGenerator: CodeGenerator) : SymbolP
             if (groupId.isNotEmpty()) {
                 if (!processedGroups.contains(groupId)) {
                     val groupedSections = sectionSpecs.filter { it.groupId == groupId }
+                    val templateSections = groupedSections.map { sec ->
+                        SectionMeta(
+                            id = sec.id,
+                            groupId = sec.groupId,
+                            label = sec.label,
+                            description = sec.description,
+                            fields = groupedFields[sec.id] ?: emptyList()
+                        )
+                    }
+
                     val repeatable = RepeatableMeta(
                         groupId = groupId,
-                        title =  processor.getGroupTitle(payload, groupId),
-                        sectionTemplates = groupedSections.map { sec ->
-                            SectionMeta(
-                                id = sec.id,
-                                label = sec.label,
-                                description = sec.description,
-                                fields = groupedFields[sec.id] ?: emptyList()
-                            )
-                        }
+                        title = processor.getGroupTitle(payload, groupId),
+                        templateSections = templateSections, // new property
+                        sections = templateSections.toList()  // initial instance
                     )
                     elements.add(repeatable)
                     processedGroups.add(groupId)

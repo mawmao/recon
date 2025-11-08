@@ -16,7 +16,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
-import okio.inMemorySocketPair
+import timber.log.Timber
 
 @FormSpec(
     label = "Nutrient Management",
@@ -140,13 +140,14 @@ data class NutrientManagement(
 
 @Serializable
 private data class FertilizationRecord(
-    val id: Int, // used only for DB
+    val id: Int? = null, // used only for DB
     @SerialName("applied_area_sqm") val appliedAreaSqM: Double,
+    @SerialName("fertilizer_application") val fertilizerApplication: List<FertilizerApplications>? = null
 )
 
 @Serializable
 private data class FertilizerApplications(
-    @SerialName("fertilization_record_id") val fertilizationRecordId: Int,
+    @SerialName("fertilization_record_id") val fertilizationRecordId: Int? = null,
     @SerialName("fertilizer_type") val fertilizerType: String,
     @SerialName("brand") val brandName: String,
     @SerialName("nitrogen_content_pct") val nitrogenContentPercent: Double,
@@ -159,7 +160,7 @@ private data class FertilizerApplications(
 
 object NutrientManagementMapper : FormMapper() {
     override suspend fun upload(entry: FormEntryEntity, client: SupabaseClient) {
-        val payload = Json.decodeFromString<NutrientManagement>(entry.payloadJson)
+        val payload = Json.decodeFromString<FertilizationRecord>(entry.payloadJson)
         val parentData = buildParentData(client = client, entry = entry)
         val parentId = client.upsertAndGetId(
             table = TableRegistry.FIELD_ACTIVITIES,
@@ -178,22 +179,24 @@ object NutrientManagementMapper : FormMapper() {
             onConflict = "id"
         )
 
-        client.upsert(
-            table = TableRegistry.FERTILIZER_APPLICATIONS,
-            item = Json.encodeToJsonElement(
-                FertilizerApplications(
-                    fertilizationRecordId = detailParentId,
-                    fertilizerType = payload.fertilizerType,
-                    brandName = payload.brandName,
-                    nitrogenContentPercent = payload.nitrogenContentPercent,
-                    phosphorusContentPercent = payload.phosphorusContentPercent,
-                    potassiumContentPercent = payload.potassiumContentPercent,
-                    amountApplied = payload.amountApplied,
-                    amountUnit = payload.amountUnit,
-                    cropStageOnApplication = payload.cropStageOnApplication,
-                )
-            ),
-            onConflict = "id"
-        )
+        payload.fertilizerApplication?.forEach { payload ->
+            client.upsert(
+                table = TableRegistry.FERTILIZER_APPLICATIONS,
+                item = Json.encodeToJsonElement(
+                    FertilizerApplications(
+                        fertilizationRecordId = detailParentId,
+                        fertilizerType = payload.fertilizerType,
+                        brandName = payload.brandName,
+                        nitrogenContentPercent = payload.nitrogenContentPercent,
+                        phosphorusContentPercent = payload.phosphorusContentPercent,
+                        potassiumContentPercent = payload.potassiumContentPercent,
+                        amountApplied = payload.amountApplied,
+                        amountUnit = payload.amountUnit,
+                        cropStageOnApplication = payload.cropStageOnApplication,
+                    )
+                ),
+                onConflict = "id"
+            )
+        }
     }
 }

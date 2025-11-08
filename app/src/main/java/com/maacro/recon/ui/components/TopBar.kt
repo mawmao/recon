@@ -29,7 +29,7 @@ fun ReconDefaultNavigationTopBar(
 ) {
     ReconTopAppBar(
         modifier = modifier,
-        onNavigateBack = onNavigateBack,
+        onBackTap = onNavigateBack,
         actions = {
             ReconIconButton(
                 onClick = onClose,
@@ -44,7 +44,9 @@ fun ReconDefaultNavigationTopBar(
 @Composable
 fun ReconTopAppBar(
     modifier: Modifier = Modifier,
-    onNavigateBack: (() -> Unit)? = null,
+    onBackTap: (() -> Unit)? = null,
+    onBackDoubleTap: (() -> Unit)? = null,
+    onBackLongTap: (() -> Unit)? = null,
     title: (@Composable () -> Unit)? = null,
     actions: (@Composable RowScope.() -> Unit)? = null,
     contentColor: Color = MaterialTheme.colorScheme.onBackground,
@@ -58,7 +60,7 @@ fun ReconTopAppBar(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        if (onNavigateBack != null) {
+        if (onBackTap != null) {
             Box(
                 Modifier.weight(1f),
                 contentAlignment = Alignment.CenterStart
@@ -66,7 +68,9 @@ fun ReconTopAppBar(
                 CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
                     ReconIconButton(
                         modifier = Modifier.size(24.dp),
-                        onClick = onNavigateBack,
+                        onClick = onBackTap,
+                        onDoubleTap = onBackDoubleTap,
+                        onLongPress = onBackLongTap,
                         imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
                         contentDescription = "Navigate Back Icon Button",
                         tint = contentColor
@@ -78,7 +82,7 @@ fun ReconTopAppBar(
         if (title != null) {
             Box(
                 Modifier.weight(1f),
-                contentAlignment = if (onNavigateBack != null) Alignment.Center else Alignment.CenterStart
+                contentAlignment = if (onBackTap != null) Alignment.Center else Alignment.CenterStart
             ) {
                 title()
             }

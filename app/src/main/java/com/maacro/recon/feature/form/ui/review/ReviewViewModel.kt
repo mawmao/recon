@@ -1,7 +1,6 @@
 package com.maacro.recon.feature.form.ui.review
 
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.OneTimeWorkRequestBuilder
@@ -11,14 +10,15 @@ import com.maacro.recon.core.database.model.FormEntryEntity
 import com.maacro.recon.core.domain.VMActions
 import com.maacro.recon.core.domain.VMEvents
 import com.maacro.recon.core.domain.VMState
-import com.maacro.recon.core.sync.SyncConstraints
 import com.maacro.recon.core.sync.FormSyncWorker
+import com.maacro.recon.core.sync.SyncConstraints
 import com.maacro.recon.feature.auth.data.AuthRepository
 import com.maacro.recon.feature.form.data.FormRepository
 import com.maacro.recon.feature.form.data.registry.util.toActivityType
 import com.maacro.recon.feature.form.model.FieldValue
 import com.maacro.recon.feature.form.model.FormType
-import com.maacro.recon.feature.form.ui.question.FormAnswers
+import com.maacro.recon.feature.form.model.SubmissionResult
+import com.maacro.recon.feature.form.model.buildSubmission
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -27,8 +27,11 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.jan.supabase.auth.status.SessionStatus
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
+import org.json.JSONArray
 import org.json.JSONObject
-import java.util.Map.entry
+import timber.log.Timber
+import kotlin.apply
 
 @HiltViewModel(assistedFactory = ReviewViewModel.Factory::class)
 class ReviewViewModel @AssistedInject constructor(
@@ -39,9 +42,9 @@ class ReviewViewModel @AssistedInject constructor(
     @ApplicationContext private val context: Context
 ) : ViewModel(), VMActions<ReviewAction> {
 
-    val currentForm = FormType.fromName(formTypeName).template
+    val form = FormType.fromName(formTypeName).template
 
-    private val _state = VMState(initialState = ReviewScreenState(currentForm = currentForm))
+    private val _state = VMState(initialState = ReviewScreenState(currentForm = form))
     val state = _state.flow
 
     private val _events = VMEvents<ReviewEvent>()
@@ -60,22 +63,40 @@ class ReviewViewModel @AssistedInject constructor(
                         else -> throw IllegalStateException("User not authenticated")
                     }
 
-                    val result = action.answers.mapValues { (_, v) ->
-                        when (v) {
-                            is FieldValue.Text -> v.value
-                            is FieldValue.Number -> v.value
-                            is FieldValue.Date -> v.value
-                            is FieldValue.Dropdown -> v.selected
-                            is FieldValue.Checkbox -> v.checked
+                    val payloadJson = JSONObject().apply {
+                        when (val submission = buildSubmission(form, action.answers)) {
+                            is SubmissionResult.Dynamic -> {
+                                submission.fixedSections.forEach { (key, value) ->
+                                    put(key, fieldValueToJson(value))
+                                }
+
+                                submission.dynamicSections.forEach { (groupId, instances) ->
+                                    val instanceArray = JSONArray()
+                                    instances.forEach { instance ->
+                                        val instanceObj = JSONObject()
+                                        instance.forEach { (key, value) ->
+                                            instanceObj.put(key, fieldValueToJson(value))
+                                        }
+                                        instanceArray.put(instanceObj)
+                                    }
+                                    put(groupId, instanceArray)
+                                }
+                            }
+
+                            is SubmissionResult.Single -> {
+                                submission.ungrouped.forEach { (key, value) ->
+                                    put(key, fieldValueToJson(value))
+                                }
+                            }
                         }
                     }
-                    val payloadJson = JSONObject(result).toString()
 
+                    Timber.d("Final `payloadJson`: \n${payloadJson}")
                     val entry = FormEntryEntity(
                         mfid = mfid,
                         activityType = formTypeName.toActivityType(),
                         collectedBy = currentUserId ?: "",
-                        payloadJson = payloadJson,
+                        payloadJson = payloadJson.toString(),
                     )
 
                     try {
@@ -90,7 +111,7 @@ class ReviewViewModel @AssistedInject constructor(
                             _events.sendEvent(ReviewEvent.SubmitSuccess)
                         }
                     } catch (e: Exception) {
-                        Log.e("recon:review-vm", "Database insert failed", e)
+                        Timber.e("Database insert failed $e")
                     }
                 }
             }
@@ -104,6 +125,14 @@ class ReviewViewModel @AssistedInject constructor(
             @Assisted("mfid") mfid: String
         ): ReviewViewModel
     }
+}
+
+private fun fieldValueToJson(value: FieldValue): Any = when (value) {
+    is FieldValue.Text -> value.value
+    is FieldValue.Number -> value.value
+    is FieldValue.Date -> value.value
+    is FieldValue.Dropdown -> value.selected
+    is FieldValue.Checkbox -> value.checked
 }
 
 data class ReviewScreenState(

@@ -1,4 +1,4 @@
-package com.maacro.recon.feature.form.ui.components
+package com.maacro.recon.feature.form.ui.scan.components
 
 import android.Manifest
 import android.content.pm.PackageManager

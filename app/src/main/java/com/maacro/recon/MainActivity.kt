@@ -15,7 +15,6 @@ import com.maacro.recon.ui.ReconApp
 import com.maacro.recon.ui.theme.ReconTheme
 import dagger.hilt.android.AndroidEntryPoint
 import jakarta.inject.Inject
-import timber.log.Timber
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {

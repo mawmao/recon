@@ -18,7 +18,7 @@ fun OtpScreen(onNavigateBack: () -> Unit) {
     ) {
 
         ReconTopAppBar(
-            onNavigateBack = onNavigateBack,
+            onBackTap = onNavigateBack,
             actions = { }
         )
         Text("You are in OTP screen")

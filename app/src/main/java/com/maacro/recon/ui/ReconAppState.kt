@@ -33,7 +33,7 @@ class ReconAppState(val navController: NavHostController) {
     fun navigateToAuth() = navigateRoot(RootSection.Auth)
     fun navigateToMain() = navigateRoot(RootSection.Main)
     fun navigateToForm(formType: FormType) {
-        navController.navigate(RootSection.Form(formTypeId = formType.name))
+        navController.navigate(RootSection.Form(formTypeName = formType.name))
     }
 
     private fun navigateRoot(root: RootSection) {

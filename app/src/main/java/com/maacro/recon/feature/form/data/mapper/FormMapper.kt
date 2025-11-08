@@ -2,7 +2,6 @@ package com.maacro.recon.feature.form.data.mapper
 
 import com.maacro.recon.core.database.model.FormEntryEntity
 import com.maacro.recon.core.network.getSingleId
-import com.maacro.recon.feature.form.data.registry.tables.FieldActivities
 import com.maacro.recon.feature.form.data.registry.tables.encodeFieldActivities
 import com.maacro.recon.feature.form.data.registry.util.toActivityType
 import io.github.jan.supabase.SupabaseClient
@@ -11,8 +10,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.encodeToJsonElement
 
 abstract class FormMapper {
     abstract suspend fun upload(entry: FormEntryEntity, client: SupabaseClient)

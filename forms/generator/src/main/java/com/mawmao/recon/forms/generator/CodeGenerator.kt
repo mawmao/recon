@@ -23,7 +23,8 @@ object FormCodeGenerator {
         if (containingFile == null) return
 
         val file = FileSpec.builder(data.packageName, data.name)
-            .addProperty( PropertySpec
+            .addProperty(
+                PropertySpec
                     .builder(data.name, Form::class)
                     .initializer(generateForm(data))
                     .build()
@@ -57,9 +58,16 @@ object FormCodeGenerator {
         doubleIndent()
         add("groupId = %S,\n", rep.groupId)
         add("title = %S,\n", rep.title)
-        add("sectionTemplates = listOf(\n")
+
+        add("templateSections = listOf(\n")
         doubleIndent()
-        add(rep.sectionTemplates.joinToCode(",\n") { generateSection(it) })
+        add(rep.templateSections.joinToCode(",\n") { generateSection(it) })
+        doubleUnindent()
+        add("\n),\n")
+
+        add("sections = listOf(\n")
+        doubleIndent()
+        add(rep.sections.joinToCode(",\n") { generateSection(it) })
         doubleUnindent()
         add("\n)\n")
         doubleUnindent()
@@ -71,6 +79,7 @@ object FormCodeGenerator {
         doubleIndent()
         add("key = %S,\n", section.label)
         add("title = %S,\n", section.label.replaceFirstChar { it.uppercase() })
+        if (section.groupId.isNotEmpty()) add("groupId = %S,\n", section.groupId)
         add("description = %S,\n", section.description)
         add("fields = listOf(\n")
         doubleIndent()
