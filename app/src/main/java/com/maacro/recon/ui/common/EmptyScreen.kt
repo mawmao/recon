@@ -14,6 +14,7 @@ import com.maacro.recon.ui.util.safePadding
 fun EmptyScreen(
     modifier: Modifier = Modifier,
     text: String = "Hello",
+    extra: (@Composable () -> Unit)? = null
 ) {
     Column(
         modifier = modifier.fillMaxSize().safePadding(),
@@ -21,5 +22,9 @@ fun EmptyScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(text)
+
+        extra?.let {
+            it()
+        }
     }
 }

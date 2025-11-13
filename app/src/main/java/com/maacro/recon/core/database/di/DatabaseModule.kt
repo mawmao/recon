@@ -19,9 +19,9 @@ object DatabaseModule {
     fun providesReconDatabase(
         @ApplicationContext context: Context,
     ): ReconDatabase = Room.databaseBuilder(
-        context,
-        ReconDatabase::class.java,
-        "recon-database",
-    )
+        context = context,
+        klass = ReconDatabase::class.java,
+        name = "recon-database",
+    ).createFromAsset("seed.db")
         .build()
 }

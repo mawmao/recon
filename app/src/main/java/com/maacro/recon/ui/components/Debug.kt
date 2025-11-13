@@ -17,6 +17,7 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextLayoutResult
@@ -33,6 +34,21 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
 import com.maacro.recon.ui.util.debug
 import com.maacro.recon.ui.util.safeHorizontalPadding
+
+// if possible, use only for logging
+@Composable
+fun Monitor(
+    onCompose: () -> Unit,
+    onDispose: (() -> Unit)? = null,
+    content: @Composable () -> Unit
+) {
+    DisposableEffect(Unit) {
+        onCompose()
+        onDispose { onDispose?.invoke() }
+    }
+
+    content()
+}
 
 @Composable
 fun DebugText(

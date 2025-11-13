@@ -2,23 +2,13 @@ package com.mawmao.recon.forms.model
 
 import kotlinx.serialization.Serializable
 
-@Serializable
 sealed interface FormElement
 
-@Serializable
 data class Form(
     val label: String,
     val elements: List<FormElement>
 )
 
-fun Form.sections(): List<Section> = elements.flatMap { element ->
-    when (element) {
-        is Section -> listOf(element)
-        is Repeatable -> element.sections
-    }
-}
-
-@Serializable
 data class Section(
     val key: String,
     val title: String,
@@ -27,7 +17,6 @@ data class Section(
     val fields: List<Field>
 ) : FormElement
 
-@Serializable
 data class Repeatable(
     val groupId: String,
     val title: String,
@@ -42,17 +31,38 @@ data class RepeatableMetadata(
     val isRemovable: Boolean = true
 )
 
-@Serializable
 data class Field(
     val key: String,
     val label: String,
     val type: FieldType,
     val required: Boolean = true,
-    val options: List<String>? = null
+    val options: FieldOptions? = null,
+    val valueProvider: FieldDataSource? = null,
+    val dependsOn: String = ""
 )
+
+sealed class FieldOptions {
+    data class Static(val options: List<String>) : FieldOptions()
+    data class Dynamic<T : Any>(val provider: suspend (dependsOnValue: String?) -> T) :
+        FieldOptions()
+}
+
+sealed class FieldDataSource {
+    data class Static(val options: List<String>) : FieldDataSource()
+    data class Dynamic<T>(val source: suspend (parentValue: String?) -> T) : FieldDataSource()
+    data class Computed<T>(val source: suspend () -> T) : FieldDataSource()
+}
 
 @Serializable
 enum class FieldType {
-    TEXT, NUMBER, DATE, DROPDOWN, CHECKBOX
+    TEXT,
+    NUMBER,
+    DATE,
+    DROPDOWN,
+    SEARCHABLE_DROPDOWN,
+    CHECKBOX,
+    GPS,
+    // CAMERA/IMAGE
 }
+
 

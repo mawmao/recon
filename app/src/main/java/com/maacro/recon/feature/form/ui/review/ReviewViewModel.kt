@@ -14,6 +14,7 @@ import com.maacro.recon.core.sync.FormSyncWorker
 import com.maacro.recon.core.sync.SyncConstraints
 import com.maacro.recon.feature.auth.data.AuthRepository
 import com.maacro.recon.feature.form.data.FormRepository
+import com.maacro.recon.feature.form.data.registry.FormFactory
 import com.maacro.recon.feature.form.data.registry.util.toActivityType
 import com.maacro.recon.feature.form.model.FieldValue
 import com.maacro.recon.feature.form.model.FormType
@@ -27,24 +28,23 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.jan.supabase.auth.status.SessionStatus
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json
 import org.json.JSONArray
 import org.json.JSONObject
 import timber.log.Timber
-import kotlin.apply
 
 @HiltViewModel(assistedFactory = ReviewViewModel.Factory::class)
 class ReviewViewModel @AssistedInject constructor(
     private val formRepository: FormRepository,
     private val authRepository: AuthRepository,
-    @Assisted("formType") val formTypeName: String,
-    @Assisted("mfid") val mfid: String,
+    private val formFactory: FormFactory,
+    @Assisted("formType") private val formTypeName: String,
+    @Assisted("mfid") private val mfid: String,
     @ApplicationContext private val context: Context
 ) : ViewModel(), VMActions<ReviewAction> {
 
-    val form = FormType.fromName(formTypeName).template
+    val form = formFactory.getTemplate(FormType.fromName(formTypeName))
 
-    private val _state = VMState(initialState = ReviewScreenState(currentForm = form))
+    private val _state = VMState(ReviewScreenState(currentForm = form))
     val state = _state.flow
 
     private val _events = VMEvents<ReviewEvent>()
@@ -52,70 +52,80 @@ class ReviewViewModel @AssistedInject constructor(
 
     override fun onAction(action: ReviewAction) {
         when (action) {
-            is ReviewAction.BackClick -> _state.update { it.copy(isBackConfirmShown = true) }
-            is ReviewAction.BackDismiss -> _state.update { it.copy(isBackConfirmShown = false) }
-            is ReviewAction.ExitClick -> _state.update { it.copy(isExitConfirmShown = true) }
-            is ReviewAction.ExitDismiss -> _state.update { it.copy(isExitConfirmShown = false) }
-            is ReviewAction.FormSubmit -> {
-                viewModelScope.launch {
-                    val currentUserId = when (val status = authRepository.sessionStatus.first()) {
-                        is SessionStatus.Authenticated -> status.session.user?.id
-                        else -> throw IllegalStateException("User not authenticated")
-                    }
+            is ReviewAction.BackClick -> toggleBackConfirm(true)
+            is ReviewAction.BackDismiss -> toggleBackConfirm(false)
+            is ReviewAction.ExitClick -> toggleExitConfirm(true)
+            is ReviewAction.ExitDismiss -> toggleExitConfirm(false)
+            is ReviewAction.FormSubmit -> submitForm(action.answers)
+        }
+    }
 
-                    val payloadJson = JSONObject().apply {
-                        when (val submission = buildSubmission(form, action.answers)) {
-                            is SubmissionResult.Dynamic -> {
-                                submission.fixedSections.forEach { (key, value) ->
-                                    put(key, fieldValueToJson(value))
-                                }
+    private fun toggleBackConfirm(show: Boolean) =
+        _state.update { it.copy(isBackConfirmShown = show) }
 
-                                submission.dynamicSections.forEach { (groupId, instances) ->
-                                    val instanceArray = JSONArray()
-                                    instances.forEach { instance ->
-                                        val instanceObj = JSONObject()
-                                        instance.forEach { (key, value) ->
-                                            instanceObj.put(key, fieldValueToJson(value))
-                                        }
-                                        instanceArray.put(instanceObj)
-                                    }
-                                    put(groupId, instanceArray)
-                                }
-                            }
+    private fun toggleExitConfirm(show: Boolean) =
+        _state.update { it.copy(isExitConfirmShown = show) }
 
-                            is SubmissionResult.Single -> {
-                                submission.ungrouped.forEach { (key, value) ->
-                                    put(key, fieldValueToJson(value))
-                                }
-                            }
+    private fun submitForm(answers: Map<String, FieldValue>) {
+        viewModelScope.launch {
+            val userId = getAuthenticatedUserId()
+            val payloadJson = buildPayloadJson(buildSubmission(form, answers))
+            val entry = FormEntryEntity(
+                mfid = mfid,
+                activityType = formTypeName.toActivityType(),
+                collectedBy = userId ?: "",
+                payloadJson = payloadJson.toString(),
+            )
+
+            try {
+                val id = formRepository.saveFormEntry(entry)
+                if (id > 0) {
+                    enqueueSyncWork()
+                    _events.sendEvent(ReviewEvent.SubmitSuccess)
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Database insert failed")
+            }
+        }
+    }
+
+    private suspend fun getAuthenticatedUserId(): String? {
+        return when (val status = authRepository.sessionStatus.first()) {
+            is SessionStatus.Authenticated -> status.session.user?.id
+            else -> throw IllegalStateException("User not authenticated")
+        }
+    }
+
+    private fun buildPayloadJson(result: SubmissionResult): JSONObject = JSONObject().apply {
+        when (result) {
+            is SubmissionResult.Single -> result.ungrouped.forEach { (key, value) ->
+                put(key, fieldValueToJson(value))
+            }
+
+            is SubmissionResult.Dynamic -> {
+                result.fixedSections.forEach { (key, value) ->
+                    put(key, fieldValueToJson(value))
+                }
+
+                result.dynamicSections.forEach { (groupId, instances) ->
+                    val instanceArray = JSONArray(
+                        instances.map { instance ->
+                            JSONObject(instance.mapValues { (_, v) -> fieldValueToJson(v) })
                         }
-                    }
-
-                    Timber.d("Final `payloadJson`: \n${payloadJson}")
-                    val entry = FormEntryEntity(
-                        mfid = mfid,
-                        activityType = formTypeName.toActivityType(),
-                        collectedBy = currentUserId ?: "",
-                        payloadJson = payloadJson.toString(),
                     )
-
-                    try {
-                        val id = formRepository.saveFormEntry(entry)
-                        if (id > 0) {
-                            WorkManager.getInstance(context).enqueue(
-                                OneTimeWorkRequestBuilder<FormSyncWorker>()
-                                    .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
-                                    .setConstraints(SyncConstraints)
-                                    .build()
-                            )
-                            _events.sendEvent(ReviewEvent.SubmitSuccess)
-                        }
-                    } catch (e: Exception) {
-                        Timber.e("Database insert failed $e")
-                    }
+                    put(groupId, instanceArray)
                 }
             }
         }
+    }
+
+    private fun enqueueSyncWork() {
+        WorkManager.getInstance(context).enqueue(
+            OneTimeWorkRequestBuilder<FormSyncWorker>()
+                .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+                .setConstraints(SyncConstraints)
+                .build()
+        )
     }
 
     @AssistedFactory

@@ -1,24 +1,65 @@
 package com.mawmao.recon.forms.generator
 
 import com.google.devtools.ksp.processing.CodeGenerator
+import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.processing.SymbolProcessor
+import com.google.devtools.ksp.symbol.ClassKind
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.mawmao.recon.forms.model.annotations.FieldSpec
+import com.mawmao.recon.forms.model.annotations.FormTypeEnum
 
-class FormGeneratorProcessor(private val codeGenerator: CodeGenerator) : SymbolProcessor {
+class FormGeneratorProcessor(
+    private val codeGenerator: CodeGenerator,
+    private val logger: KSPLogger
+) : SymbolProcessor {
+
     private val processor = FormAnnotationProcessor()
+    private val generatedForms = mutableListOf<FormMeta>()
+
     override fun process(resolver: Resolver): List<KSAnnotated> {
-        resolver.getAnnotatedPayloads().forEach { payload ->
+        val payloads = resolver.getAnnotatedPayloads()
+
+        payloads.forEach { payload ->
             val model = createFormData(payload)
-            FormCodeGenerator.generateFormFile(
+            generatedForms += model
+            FormCodeGenerator.generateFormClassFile(
                 codeGenerator = codeGenerator,
-                containingFile = payload.containingFile,
-                data = model
+                file = payload.containingFile,
+                metadata = model
             )
         }
+
+        val formTypeEnum = resolver.getFormTypeEnum(logger)
+        if (generatedForms.isNotEmpty()) {
+            if (formTypeEnum != null) {
+                val (containingFile, packageName) = generatedForms.firstNotNullOfOrNull {
+                    it.containingFile?.let { file -> file to it.packageName }
+                } ?: return emptyList()
+
+                FormCodeGenerator.generateFormFactory(
+                    codeGenerator = codeGenerator,
+                    forms = generatedForms,
+                    ftClass = formTypeEnum,
+                    packageName = packageName,
+                    file = containingFile
+                )
+                FormCodeGenerator.generateFormEntryPoint(
+                    codeGenerator = codeGenerator,
+                    packageName = packageName,
+                    file = containingFile
+                )
+
+                generatedForms.clear()
+                return emptyList()
+            } else {
+                logger.warn("Skipping FormFactory generation: @FormTypeEnum not found yet")
+                return payloads
+            }
+        }
+
         return emptyList()
     }
 
@@ -29,11 +70,14 @@ class FormGeneratorProcessor(private val codeGenerator: CodeGenerator) : SymbolP
 
         val groupedFields = payload.getAllProperties()
             .map { prop ->
+                val (staticOpts, providerMeta) = processor.getFieldOptions(prop)
                 FieldMeta(
                     key = processor.getSerialName(prop),
                     label = processor.getFieldLabel(prop),
                     type = processor.getFieldType(prop),
-                    options = processor.getFieldOptions(prop)
+                    options = staticOpts,
+                    providerMeta = providerMeta,
+                    dependsOn = processor.getFieldDependency(prop)
                 ) to processor.getSectionId(prop)
             }
             .groupBy({ it.second }, { it.first })
@@ -67,7 +111,6 @@ class FormGeneratorProcessor(private val codeGenerator: CodeGenerator) : SymbolP
                     processedGroups.add(groupId)
                 }
             } else {
-                // Ungrouped section
                 elements.add(
                     SectionMeta(
                         id = section.id,
@@ -78,15 +121,27 @@ class FormGeneratorProcessor(private val codeGenerator: CodeGenerator) : SymbolP
                 )
             }
         }
+        val providers = groupedFields.values.flatten()
+            .mapNotNull { it.providerMeta?.providerFqcn }
+            .distinct()
+
 
         return FormMeta(
             packageName = payload.packageName.asString(),
-            name = "${payload.simpleName.asString()}Form",
+            name = payload.simpleName.asString(),
             label = formLabel,
-            elements = elements
+            elements = elements,
+            providers = providers,
+            containingFile = payload.containingFile
         )
     }
 
+    private fun Resolver.getFormTypeEnum(logger: KSPLogger): KSClassDeclaration? {
+        val annotated = getSymbolsWithAnnotation(FormTypeEnum::class.qualifiedName!!)
+            .filterIsInstance<KSClassDeclaration>()
+
+        return annotated.firstOrNull { it.classKind == ClassKind.ENUM_CLASS }
+    }
 
     private fun Resolver.getAnnotatedPayloads(): List<KSClassDeclaration> =
         getSymbolsWithAnnotation(FieldSpec::class.qualifiedName!!)

@@ -19,14 +19,15 @@ sealed class RootSection : ReconRoute {
     object Main : RootSection()
 
     // use `FormType.name`
-    @Serializable data class Form(val formTypeName: String) : RootSection()
+    @Serializable
+    data class Form(val formTypeName: String) : RootSection()
 }
 
 
 @Composable
 fun ReconRootNavigation(
     appState: ReconAppState,
-    startDestination: RootSection
+    startDestination: RootSection,
 ) {
     NavHost(
         navController = appState.navController,

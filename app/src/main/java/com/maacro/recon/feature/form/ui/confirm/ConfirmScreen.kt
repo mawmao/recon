@@ -1,5 +1,6 @@
 package com.maacro.recon.feature.form.ui.confirm
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -28,21 +29,23 @@ fun ConfirmScreen(
     onExit: () -> Unit
 ) {
 
+    BackHandler(onBack = onNavigateBack)
+
     Column(
         modifier = Modifier
             .safePadding()
             .fillMaxSize()
     ) {
-        ReconTopAppBar(
-            onBackTap = onNavigateBack,
-            actions = {
-                ReconIconButton(
-                    onClick = onExit,
-                    imageVector = Icons.Outlined.Close,
-                    contentDescription = "Close Icon Button",
-                )
-            }
-        )
+//        ReconTopAppBar(
+//            onBackTap = onNavigateBack,
+//            actions = {
+//                ReconIconButton(
+//                    onClick = onExit,
+//                    imageVector = Icons.Outlined.Close,
+//                    contentDescription = "Close Icon Button",
+//                )
+//            }
+//        )
         Column(
             modifier = Modifier
                 .weight(1F)
@@ -61,7 +64,7 @@ fun ConfirmScreen(
                 ReconButton(
                     modifier = Modifier.fillMaxWidth(),
                     text = "Continue",
-                    onClick = { onContinue() }
+                    onClick = onContinue
                 )
             }
         }

@@ -29,7 +29,7 @@ fun ScanScreen(
     vm: ScanViewModel = hiltViewModel(),
     formSectionState: FormSectionState,
     onNavigateBack: () -> Unit,
-    onBarcodeScan: () -> Unit
+    onBarcodeScan: (String) -> Unit
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
 
@@ -38,11 +38,13 @@ fun ScanScreen(
         contentAlignment = Alignment.Center // temp
     ) {
 
+        val tempMfid = "600401001"
+
         ReconButton(
-            text = "Scan (debug)",
+            text = "Skip scan (use mfid=$tempMfid)",
             onClick = {
-                formSectionState.updateMfid("600401001")
-                onBarcodeScan()
+                formSectionState.updateMfid(tempMfid)
+                onBarcodeScan(tempMfid)
             }
         )
 
@@ -56,18 +58,18 @@ fun ScanScreen(
 //            }
 //        )
 
-        Column(
-            modifier = Modifier
-                .safePadding()
-                .fillMaxWidth()
-                .align(Alignment.TopCenter)
-        ) {
-            ReconTopAppBar(
-                onBackTap = onNavigateBack,
-                contentColor = Color.White,
-                actions = {}
-            )
-        }
+//        Column(
+//            modifier = Modifier
+//                .safePadding()
+//                .fillMaxWidth()
+//                .align(Alignment.TopCenter)
+//        ) {
+//            ReconTopAppBar(
+//                onBackTap = onNavigateBack,
+//                contentColor = Color.White,
+//                actions = {}
+//            )
+//        }
 
         Text(
             text = state.detectedBarcode ?: "",

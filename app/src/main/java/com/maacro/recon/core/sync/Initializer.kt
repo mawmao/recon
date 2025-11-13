@@ -1,13 +1,13 @@
 package com.maacro.recon.core.sync
 
 import android.content.Context
-import android.util.Log
 import androidx.work.ExistingWorkPolicy
 import androidx.work.WorkManager
+import timber.log.Timber
 
 object Sync {
     fun initialize(context: Context) {
-        Log.d("recon:sync", "Initializing sync")
+        Timber.d("Initializing Form Sync Worker")
         WorkManager.getInstance(context).apply {
             enqueueUniqueWork(
                 SYNC_WORK_NAME,

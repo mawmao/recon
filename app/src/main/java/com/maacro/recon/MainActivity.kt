@@ -22,6 +22,7 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var authRepository: AuthRepository
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
 
         val splashScreen = installSplashScreen()
@@ -46,9 +47,7 @@ class MainActivity : ComponentActivity() {
 
             sessionStatus?.let {
                 ReconTheme {
-                    ReconApp(
-                        sessionStatus = it
-                    )
+                    ReconApp(sessionStatus = it)
                 }
             }
         }

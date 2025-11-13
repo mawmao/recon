@@ -1,6 +1,5 @@
 package com.maacro.recon.core.network.di
 
-import android.util.Log
 import com.maacro.recon.BuildConfig
 import com.maacro.recon.core.network.service.SupabaseService
 import dagger.Module
@@ -13,6 +12,7 @@ import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.logging.LogLevel
 import io.github.jan.supabase.postgrest.Postgrest
 import jakarta.inject.Singleton
+import timber.log.Timber
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -21,7 +21,7 @@ object SupabaseModule {
     @Provides
     @Singleton
     fun providesSupabaseClient(): SupabaseClient {
-        Log.d("recon:config", "Using Supabase URL: ${BuildConfig.SUPABASE_URL}")
+        Timber.d("Using Supabase URL: ${BuildConfig.SUPABASE_URL}")
         return createSupabaseClient(
             supabaseUrl = BuildConfig.SUPABASE_URL,
             supabaseKey = BuildConfig.SUPABASE_KEY

@@ -1,5 +1,10 @@
 package com.maacro.recon.ui.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.maacro.recon.ui.transitions.ReconEasing
 
 @Composable
 fun ReconDefaultNavigationTopBar(
@@ -43,6 +49,32 @@ fun ReconDefaultNavigationTopBar(
 
 @Composable
 fun ReconTopAppBar(
+    modifier: Modifier = Modifier,
+    show: Boolean = true,
+    onBackTap: (() -> Unit)? = null,
+    onBackDoubleTap: (() -> Unit)? = null,
+    onBackLongTap: (() -> Unit)? = null,
+    title: (@Composable () -> Unit)? = null,
+    actions: (@Composable RowScope.() -> Unit)? = null,
+    contentColor: Color = MaterialTheme.colorScheme.onBackground,
+    paddingValues: PaddingValues = PaddingValues(vertical = 16.dp)
+) {
+    if (show) {
+        ReconTopAppBarImpl(
+            modifier = modifier,
+            onBackTap = onBackTap,
+            onBackDoubleTap = onBackDoubleTap,
+            onBackLongTap = onBackLongTap,
+            title = title,
+            actions = actions,
+            contentColor = contentColor,
+            paddingValues = paddingValues
+        )
+    }
+}
+
+@Composable
+fun ReconTopAppBarImpl(
     modifier: Modifier = Modifier,
     onBackTap: (() -> Unit)? = null,
     onBackDoubleTap: (() -> Unit)? = null,

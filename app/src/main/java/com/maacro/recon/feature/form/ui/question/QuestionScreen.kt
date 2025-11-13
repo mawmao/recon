@@ -27,7 +27,6 @@ import com.maacro.recon.ui.components.ReconTopAppBar
 import com.maacro.recon.ui.sections.FormSectionState
 import com.maacro.recon.ui.util.safeHorizontalPadding
 import com.maacro.recon.ui.util.safeVerticalPadding
-import com.mawmao.recon.forms.model.RepeatableMetadata
 import com.mawmao.recon.forms.model.Section
 
 
@@ -39,6 +38,7 @@ fun QuestionScreen(
     onNavigateToReview: () -> Unit,
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
+
     val sections = formSectionState.getSections()
     val repeatableInfo by remember(formSectionState.form.value) {
         derivedStateOf { formSectionState.getRepeatableInfo(sections) }
@@ -148,7 +148,7 @@ private fun ColumnScope.QuestionsPager(
         QuestionPage(
             section = getCurrentSection(page),
             fieldValues = answers,
-            onValueChange = onAnswerChange
+            onValueChange = onAnswerChange,
         )
     }
 }

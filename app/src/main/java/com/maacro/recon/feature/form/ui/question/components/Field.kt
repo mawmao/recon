@@ -17,7 +17,8 @@ fun QuestionField(
     field: Field,
     value: FieldValue?,
     onValueChange: (FieldValue) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    options: List<String> = emptyList()
 ) {
     when (field.type) {
         FieldType.TEXT -> {
@@ -39,11 +40,11 @@ fun QuestionField(
             )
         }
 
-        FieldType.DROPDOWN -> {
+        FieldType.DROPDOWN, FieldType.SEARCHABLE_DROPDOWN -> {
             ReconDropdownMenu(
                 modifier = modifier,
                 label = field.label,
-                options = field.options.orEmpty(),
+                options = options,
                 selectedOption = (value as? FieldValue.Dropdown)?.selected.orEmpty(),
                 onOptionSelected = { onValueChange(FieldValue.Dropdown(it)) },
             )
@@ -55,6 +56,10 @@ fun QuestionField(
                 onValueChange = { onValueChange(FieldValue.Date(it)) },
                 label = field.label
             )
+        }
+
+        FieldType.GPS -> {
+
         }
 
         FieldType.CHECKBOX -> {

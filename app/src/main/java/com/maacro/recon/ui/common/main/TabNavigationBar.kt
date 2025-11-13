@@ -1,8 +1,6 @@
 package com.maacro.recon.ui.common.main
 
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
@@ -12,7 +10,6 @@ import com.maacro.recon.navigation.main.tabs.NavigationTab
 import com.maacro.recon.ui.components.NavigationBarContent
 import com.maacro.recon.ui.components.ReconNavigationBar
 import com.maacro.recon.ui.components.ReconNavigationBarItem
-import kotlinx.coroutines.NonCancellable.key
 
 @Composable
 fun ReconTabNavigationBar(

@@ -30,6 +30,7 @@ fun ReviewScreen(
     formSectionState: FormSectionState,
     onNavigateToMain: () -> Unit,
     onNavigateBackToQuestions: () -> Unit,
+    onSuccess: () -> Unit, // for logging
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
     val events = vm.events
@@ -40,7 +41,8 @@ fun ReviewScreen(
         events = events,
         onAction = vm::onAction,
         onNavigateToMain = onNavigateToMain,
-        onNavigateBackToQuestions = onNavigateBackToQuestions
+        onNavigateBackToQuestions = onNavigateBackToQuestions,
+        onSuccess = onSuccess,
     )
 
     Column(
@@ -83,6 +85,7 @@ private fun ReviewScreenEvents(
     onAction: (ReviewAction) -> Unit,
     onNavigateToMain: () -> Unit,
     onNavigateBackToQuestions: () -> Unit,
+    onSuccess: () -> Unit
 ) {
     ReconConfirmEvent(
         confirmVisible = state.isBackConfirmShown,
@@ -105,7 +108,7 @@ private fun ReviewScreenEvents(
         when (event) {
             // NOTE: should show dialog first before navigating to main
             ReviewEvent.SubmitSuccess -> {
-                onNavigateToMain()
+                onSuccess()
             }
         }
     }

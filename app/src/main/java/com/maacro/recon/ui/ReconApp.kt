@@ -20,7 +20,7 @@ fun ReconApp(
 
     ReconRootNavigation(
         appState = appState,
-        startDestination = initialRoute
+        startDestination = initialRoute,
     )
 }
 

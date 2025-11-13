@@ -10,8 +10,7 @@ import kotlinx.coroutines.launch
 
 
 @HiltViewModel
-class QuestionViewModel @Inject constructor(
-) : ViewModel(), VMActions<QuestionAction> {
+class QuestionViewModel @Inject constructor() : ViewModel(), VMActions<QuestionAction> {
 
     private val _state = VMState(initialState = QuestionScreenState(currentPage = 0))
     val state = _state.flow

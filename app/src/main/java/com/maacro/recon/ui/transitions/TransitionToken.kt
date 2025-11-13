@@ -2,7 +2,7 @@ package com.maacro.recon.ui.transitions
 
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -12,10 +12,16 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.ui.unit.IntOffset
 
+val ReconEasing = CubicBezierEasing(0.22f, 0.25f, 0.00f, 1.00f)
+
 object TransitionToken {
-    private const val ANIM_DURATION = 300
+
+    private const val ANIM_DURATION = 250
     private val ANIMATION_SPEC =
-        tween<IntOffset>(durationMillis = ANIM_DURATION, easing = FastOutSlowInEasing)
+        tween<IntOffset>(
+            durationMillis = ANIM_DURATION,
+            easing = ReconEasing
+        )
 
     val slideInFromRight =
         slideInHorizontally(
